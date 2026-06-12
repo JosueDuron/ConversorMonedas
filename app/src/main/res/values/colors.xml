@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Paleta principal sin morado -->
+    <color name="blue_deep">#0A3D73</color>
+    <color name="blue_primary">#1565C0</color>
+    <color name="blue_light">#EAF3FF</color>
+
+    <color name="green_money">#00A86B</color>
+    <color name="green_light">#E8F8F1</color>
+
+    <color name="screen_bg">#F3F6FA</color>
+    <color name="card_bg">#FFFFFF</color>
+
+    <color name="text_dark">#1F2937</color>
+    <color name="text_gray">#6B7280</color>
+    <color name="border_soft">#DDE4EE</color>
+
+    <!-- Compatibilidad con layouts anteriores -->
+    <color name="primary_blue">#1565C0</color>
+    <color name="primary_blue_dark">#0A3D73</color>
+    <color name="accent_green">#00A86B</color>
+    <color name="background_light">#F3F6FA</color>
+    <color name="card_white">#FFFFFF</color>
+    <color name="border_light">#DDE4EE</color>
 </resources>

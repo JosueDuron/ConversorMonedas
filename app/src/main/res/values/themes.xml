@@ -1,9 +1,16 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
     <style name="Base.Theme.ConversorMonedasApp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">#1565C0</item>
+        <item name="colorPrimaryContainer">#0A3D73</item>
+        <item name="colorSecondary">#00A86B</item>
+        <item name="colorSecondaryContainer">#E8F8F1</item>
+
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">#0A3D73</item>
+        <item name="android:navigationBarColor">#F3F6FA</item>
     </style>
 
     <style name="Theme.ConversorMonedasApp" parent="Base.Theme.ConversorMonedasApp" />
+
 </resources>
