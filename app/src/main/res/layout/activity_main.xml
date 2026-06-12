@@ -5,7 +5,6 @@
     android:background="@drawable/bg_screen"
     android:orientation="vertical">
 
-    <!-- ENCABEZADO AZUL COMPACTO -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="190dp"
@@ -103,14 +102,14 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Moneda origen"
+            android:text="Seleccionar tipo de conversión"
             android:textColor="#1F2937"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_marginBottom="6dp" />
 
         <Spinner
-            android:id="@+id/spinnerOrigen"
+            android:id="@+id/spinnerTasas"
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:background="@drawable/bg_input"
@@ -119,22 +118,14 @@
             android:layout_marginBottom="14dp" />
 
         <TextView
+            android:id="@+id/tvMensajeVacio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Moneda destino"
-            android:textColor="#1F2937"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="6dp" />
-
-        <Spinner
-            android:id="@+id/spinnerDestino"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_input"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:layout_marginBottom="18dp" />
+            android:text="No hay tasas disponibles. Por favor, agregue una tasa de cambio."
+            android:textColor="#EF4444"
+            android:textSize="14sp"
+            android:visibility="gone"
+            android:layout_marginBottom="14dp" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnConvertir"

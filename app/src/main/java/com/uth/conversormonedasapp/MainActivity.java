@@ -1,11 +1,14 @@
 package com.uth.conversormonedasapp;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,29 +17,40 @@ import androidx.appcompat.widget.AppCompatButton;
 import com.uth.conversormonedasapp.BD.DatabaseHelper;
 import com.uth.conversormonedasapp.utils.DateUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private EditText etMonto;
-    private Spinner spinnerOrigen;
-    private Spinner spinnerDestino;
+    private Spinner spinnerTasas;
+    private TextView tvMensajeVacio;
     private AppCompatButton btnConvertir;
     private AppCompatButton btnHistorial;
     private AppCompatButton btnTasas;
 
     private DatabaseHelper databaseHelper;
+    private List<RateInfo> listaTasas;
 
-    private final String[] monedasOrigen = {
-            "HNL",
-            "GTQ",
-            "NIO",
-            "CRC",
-            "PAB",
-            "USD"
-    };
+    private static class RateInfo {
+        String from;
+        String to;
+        double rate;
+        boolean isFavorite;
 
-    private final String[] monedasDestino = {
-            "USD"
-    };
+        RateInfo(String from, String to, double rate, boolean isFavorite) {
+            this.from = from;
+            this.to = to;
+            this.rate = rate;
+            this.isFavorite = isFavorite;
+        }
+
+        @Override
+        public String toString() {
+            String star = isFavorite ? "⭐ " : "";
+            return star + from + " a " + to + " (Tasa: " + rate + ")";
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,32 +64,54 @@ public class MainActivity extends AppCompatActivity {
         databaseHelper = new DatabaseHelper(this);
 
         etMonto = findViewById(R.id.etMonto);
-        spinnerOrigen = findViewById(R.id.spinnerOrigen);
-        spinnerDestino = findViewById(R.id.spinnerDestino);
+        spinnerTasas = findViewById(R.id.spinnerTasas);
+        tvMensajeVacio = findViewById(R.id.tvMensajeVacio);
         btnConvertir = findViewById(R.id.btnConvertir);
         btnHistorial = findViewById(R.id.btnHistorial);
         btnTasas = findViewById(R.id.btnTasas);
 
-        configurarSpinners();
+        cargarTasas();
         configurarBotones();
     }
 
-    private void configurarSpinners() {
-        ArrayAdapter<String> adapterOrigen = new ArrayAdapter<>(
-                this,
-                R.layout.spinner_item,
-                monedasOrigen
-        );
-        adapterOrigen.setDropDownViewResource(R.layout.spinner_dropdown_item);
-        spinnerOrigen.setAdapter(adapterOrigen);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        cargarTasas();
+    }
 
-        ArrayAdapter<String> adapterDestino = new ArrayAdapter<>(
-                this,
-                R.layout.spinner_item,
-                monedasDestino
-        );
-        adapterDestino.setDropDownViewResource(R.layout.spinner_dropdown_item);
-        spinnerDestino.setAdapter(adapterDestino);
+    private void cargarTasas() {
+        listaTasas = new ArrayList<>();
+        Cursor cursor = databaseHelper.obtenerTodasLasTasas();
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                String from = cursor.getString(cursor.getColumnIndexOrThrow("from_code"));
+                String to = cursor.getString(cursor.getColumnIndexOrThrow("to_code"));
+                double rate = cursor.getDouble(cursor.getColumnIndexOrThrow("rate"));
+                int isFav = cursor.getInt(cursor.getColumnIndexOrThrow("is_favorite"));
+                listaTasas.add(new RateInfo(from, to, rate, isFav == 1));
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+
+        if (listaTasas.isEmpty()) {
+            tvMensajeVacio.setVisibility(View.VISIBLE);
+            spinnerTasas.setVisibility(View.GONE);
+            btnConvertir.setEnabled(false);
+        } else {
+            tvMensajeVacio.setVisibility(View.GONE);
+            spinnerTasas.setVisibility(View.VISIBLE);
+            btnConvertir.setEnabled(true);
+
+            ArrayAdapter<RateInfo> adapter = new ArrayAdapter<>(
+                    this,
+                    R.layout.spinner_item,
+                    listaTasas
+            );
+            adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+            spinnerTasas.setAdapter(adapter);
+        }
     }
 
     private void configurarBotones() {
@@ -114,15 +150,16 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        String monedaOrigen = spinnerOrigen.getSelectedItem().toString();
-        String monedaDestino = spinnerDestino.getSelectedItem().toString();
+        RateInfo selectedRate = (RateInfo) spinnerTasas.getSelectedItem();
 
-        double tasa = databaseHelper.obtenerTasa(monedaOrigen, monedaDestino);
-
-        if (tasa == 0) {
-            Toast.makeText(this, "No existe tasa para esta conversión", Toast.LENGTH_SHORT).show();
+        if (selectedRate == null) {
+            Toast.makeText(this, "Seleccione una tasa de conversión", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        String monedaOrigen = selectedRate.from;
+        String monedaDestino = selectedRate.to;
+        double tasa = selectedRate.rate;
 
         double resultado = monto * tasa;
         String fecha = DateUtils.obtenerFechaActual();

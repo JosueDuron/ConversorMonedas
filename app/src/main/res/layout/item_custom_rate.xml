@@ -43,6 +43,14 @@
             android:textSize="22sp"
             android:textStyle="bold" />
 
+        <ImageView
+            android:id="@+id/ivFavorite"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="10dp"
+            android:padding="4dp"
+            android:src="@drawable/ic_star_off" />
+
     </LinearLayout>
 
     <!-- Tasa -->

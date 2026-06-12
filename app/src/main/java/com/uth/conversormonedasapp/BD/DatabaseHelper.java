@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "conversiones_monedas.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     // Tabla rates
     public static final String TABLE_RATES = "rates";
@@ -19,6 +19,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_RATES_FROM = "from_code";
     public static final String COLUMN_RATES_TO = "to_code";
     public static final String COLUMN_RATES_RATE = "rate";
+    public static final String COLUMN_RATES_IS_FAVORITE = "is_favorite";
 
     // Tabla conversions
     public static final String TABLE_CONVERSIONS = "conversions";
@@ -47,7 +48,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_RATES_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_RATES_FROM + " TEXT, " +
                     COLUMN_RATES_TO + " TEXT, " +
-                    COLUMN_RATES_RATE + " REAL" +
+                    COLUMN_RATES_RATE + " REAL, " +
+                    COLUMN_RATES_IS_FAVORITE + " INTEGER DEFAULT 0" +
                     ")";
 
     private static final String CREATE_TABLE_CONVERSIONS =
@@ -95,6 +97,41 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_RATES_RATE, rate);
 
         db.insert(TABLE_RATES, null, values);
+    }
+
+    public Cursor obtenerTodasLasTasas() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT " + COLUMN_RATES_ID + " AS _id, " +
+                COLUMN_RATES_FROM + ", " +
+                COLUMN_RATES_TO + ", " +
+                COLUMN_RATES_RATE + ", " +
+                COLUMN_RATES_IS_FAVORITE +
+                " FROM " + TABLE_RATES +
+                " ORDER BY " + COLUMN_RATES_IS_FAVORITE + " DESC", null);
+    }
+
+    public boolean agregarTasa(String from, String to, double rate) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_RATES_FROM, from);
+        values.put(COLUMN_RATES_TO, to);
+        values.put(COLUMN_RATES_RATE, rate);
+
+        long result = db.insert(TABLE_RATES, null, values);
+        db.close();
+        return result != -1;
+    }
+
+    public boolean actualizarTasa(int id, String from, String to, double rate) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_RATES_FROM, from);
+        values.put(COLUMN_RATES_TO, to);
+        values.put(COLUMN_RATES_RATE, rate);
+
+        int result = db.update(TABLE_RATES, values, COLUMN_RATES_ID + "=?", new String[]{String.valueOf(id)});
+        db.close();
+        return result > 0;
     }
 
     public double obtenerTasa(String from, String to) {
@@ -211,12 +248,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(COLUMN_CUSTOM_IS_FAVORITE, favorito);
+        values.put(COLUMN_RATES_IS_FAVORITE, favorito);
 
         int filas = db.update(
-                TABLE_CUSTOM_RATES,
+                TABLE_RATES,
                 values,
-                COLUMN_CUSTOM_ID + "=?",
+                COLUMN_RATES_ID + "=?",
                 new String[]{String.valueOf(id)}
         );
 
@@ -275,6 +312,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return filas > 0;
     }
 
+    public boolean eliminarTasa(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int result = db.delete(TABLE_RATES, COLUMN_RATES_ID + "=?", new String[]{String.valueOf(id)});
+        db.close();
+        return result > 0;
+    }
+
     public boolean eliminarTasaPersonalizada(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -290,9 +334,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_RATES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CONVERSIONS);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CUSTOM_RATES);
-        onCreate(db);
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE " + TABLE_RATES + " ADD COLUMN " + COLUMN_RATES_IS_FAVORITE + " INTEGER DEFAULT 0");
+        } else {
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_RATES);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_CONVERSIONS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_CUSTOM_RATES);
+            onCreate(db);
+        }
     }
 }
